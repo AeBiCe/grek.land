@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Random Invention</title>
+        <style>
+            /* Reset default margin and padding */
+            * {
+                margin: 0;
+                padding: 0;
+            }
+    
+            /* Set a background color for the body */
+            body {
+                margin-top: 5em;
+                font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif; /* Change font to Palatino Linotype */
+                text-align: center;
+                background-color: #d7d3d3;
+            }
+    
+            /* Create a container with flex layout */
+            .container {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                text-align: center; /* Center-align text within the container */
+            }
+    
+            /* Style the title and description */
+            h1 a {
+                font-size: 24px;
+                text-decoration: none;
+                color: #007BFF;
+            }
+    
+            p {
+                font-size: 16px;
+                display: none;
+                text-align: center;
+            }
+    
+            /* Style the button */
+            button {
+                padding: 10px 20px;
+                font-size: 18px;
+                background-color: #007BFF;
+                color: white;
+                border: none;
+                cursor: pointer;
+                text-align: center; /* Center-align text within the button */
+                border-radius: 10px; /* Add rounder edges to the button */
+                margin-top: 10px; /* Add space between the button and the title */
+                margin-bottom: 50px;
+            }
+        </style>
+    </head>
+<body>
+    <h1>The Greeks invented...</h1>
+    <h1 id="invention-title"></h1>
+    <button id="description-button">Description</button>
+    <p id="invention-description"></p>
+    <script>
+        let lastRandomIndex = -1; // Initialize with an invalid index
+
+        // Function to fetch the external inventions.md file
+        function fetchInventions() {
+            fetch('inventions.md')
+                .then(response => response.text())
+                .then(markdown => {
+                    const inventions = parseInventions(markdown);
+                    displayRandomInvention(inventions);
+                })
+                .catch(error => {
+                    console.error('Failed to fetch inventions.md:', error);
+                });
+        }
+
+        // Function to parse the markdown and extract inventions
+        function parseInventions(markdown) {
+            const inventionLines = markdown.split('\n');
+            const inventions = [];
+
+            inventionLines.forEach(line => {
+                const match = line.match(/\[(.*?)\]\((.*?)\): (.*)/);
+                if (match) {
+                    const title = match[1].trim();
+                    const link = match[2];
+                    const description = match[3].trim();
+                    inventions.push({ title, link, description });
+                }
+            });
+
+            return inventions;
+        }
+
+        // Function to convert links in the description to actual links
+        function convertLinks(description) {
+            return description.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+        }
+
+        // Function to display a random invention and its description
+        function displayRandomInvention(inventions) {
+            let randomIndex;
+
+            do {
+                randomIndex = Math.floor(Math.random() * inventions.length);
+            } while (randomIndex === lastRandomIndex);
+
+            lastRandomIndex = randomIndex;
+            const randomInvention = inventions[randomIndex];
+
+            document.getElementById('invention-title').innerHTML = `<a href="${randomInvention.link}" target="_blank">${randomInvention.title}</a>`;
+            document.getElementById('invention-description').innerHTML = convertLinks(randomInvention.description);
+            document.getElementById('invention-description').style.display = 'none';
+        }
+
+        // Add an event listener to the description button to toggle the description
+        const descriptionButton = document.getElementById('description-button');
+        const inventionDescription = document.getElementById('invention-description');
+
+        descriptionButton.addEventListener('click', function () {
+            if (inventionDescription.style.display === 'none' || inventionDescription.style.display === '') {
+                inventionDescription.style.display = 'block';
+            } else {
+                inventionDescription.style.display = 'none';
+            }
+        });
+
+        // Fetch inventions from the external file when the page loads
+        fetchInventions();
+    </script>
+</body>
+</html>
